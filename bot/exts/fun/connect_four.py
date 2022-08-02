@@ -59,7 +59,7 @@ class Game:
         )
 
         rows = [" ".join(self.tokens[s] for s in row) for row in self.grid]
-        first_row = " ".join(x for x in NUMBERS[:self.grid_size])
+        first_row = " ".join(NUMBERS[:self.grid_size])
         formatted_grid = "\n".join([first_row] + rows)
         embed = discord.Embed(title=title, description=formatted_grid)
 
@@ -167,13 +167,14 @@ class Game:
                 row += row_incr
                 column += column_incr
 
-                while 0 <= row < self.grid_size and 0 <= column < self.grid_size:
-                    if self.grid[row][column] == player_num:
-                        counters_in_a_row += 1
-                        row += row_incr
-                        column += column_incr
-                    else:
-                        break
+                while (
+                    0 <= row < self.grid_size
+                    and 0 <= column < self.grid_size
+                    and self.grid[row][column] == player_num
+                ):
+                    counters_in_a_row += 1
+                    row += row_incr
+                    column += column_incr
             if counters_in_a_row >= 4:
                 return True
         return False
@@ -316,13 +317,11 @@ class ConnectFour(commands.Cog):
 
             return True
 
-        if (
+        return (
             user.id == ctx.author.id
             and str(reaction.emoji) == CROSS_EMOJI
             and reaction.message.id == announcement.id
-        ):
-            return True
-        return False
+        )
 
     def already_playing(self, player: discord.Member) -> bool:
         """Check if someone is already in a game."""
@@ -348,7 +347,7 @@ class ConnectFour(commands.Cog):
         emoji2: str
     ) -> None:
         """Helper for playing a game of connect four."""
-        self.tokens = [":white_circle:", str(emoji1), str(emoji2)]
+        self.tokens = [":white_circle:", emoji1, emoji2]
         game = None  # if game fails to intialize in try...except
 
         try:

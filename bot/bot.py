@@ -43,9 +43,7 @@ class Bot(commands.Bot):
     def member(self) -> Optional[discord.Member]:
         """Retrieves the guild member object for the bot."""
         guild = self.get_guild(constants.Client.guild)
-        if not guild:
-            return None
-        return guild.me
+        return guild.me if guild else None
 
     @Cog.listener()
     async def on_thread_join(self, thread: Thread) -> None:

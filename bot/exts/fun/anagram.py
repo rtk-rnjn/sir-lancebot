@@ -97,11 +97,10 @@ class Anagram(commands.Cog):
         if message.author.bot or not message.guild:
             return
 
-        game = self.games.get(message.channel.id)
-        if not game:
+        if game := self.games.get(message.channel.id):
+            await game.message_creation(message)
+        else:
             return
-
-        await game.message_creation(message)
 
 
 def setup(bot: Bot) -> None:

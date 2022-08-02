@@ -209,7 +209,7 @@ class Reddit(Cog):
             await asyncio.sleep(3)
 
         log.debug(f"Invalid response from: {url} - status code {response.status}, mimetype {response.content_type}")
-        return list()  # Failed to get appropriate response within allowed number of retries.
+        return []
 
     async def get_top_posts(
             self, subreddit: Subreddit, time: str = "all", amount: int = 5, paginate: bool = False
