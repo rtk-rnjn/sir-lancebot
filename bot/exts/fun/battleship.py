@@ -305,8 +305,11 @@ class Game:
             for message in alert_messages:
                 await message.delete()
 
-            alert_messages = []
-            alert_messages.append(await self.next.user.send(f"{self.turn.user} aimed at {self.match.string}!"))
+            alert_messages = [
+                await self.next.user.send(
+                    f"{self.turn.user} aimed at {self.match.string}!"
+                )
+            ]
 
             if square.boat:
                 await self.hit(square, alert_messages)
@@ -356,13 +359,11 @@ class Battleship(commands.Cog):
 
             return True
 
-        if (
+        return (
             user.id == ctx.author.id
             and str(reaction.emoji) == CROSS_EMOJI
             and reaction.message.id == announcement.id
-        ):
-            return True
-        return False
+        )
 
     def already_playing(self, player: discord.Member) -> bool:
         """Check if someone is already in a game."""

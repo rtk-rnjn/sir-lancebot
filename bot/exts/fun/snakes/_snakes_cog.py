@@ -377,15 +377,12 @@ class Snakes(Cog):
                 file, sep, filename = image["title"].partition(":")
                 filename = filename.replace(" ", "%20")  # Wikipedia returns good data!
 
-                if not filename.startswith("Map"):
-                    if any(ban in filename for ban in banned):
-                        pass
-                    else:
-                        image_list.append(f"{i_url}{filename}")
-                        thumb_list.append(f"{i_url}{filename}?width=100")
-                else:
+                if filename.startswith("Map"):
                     map_list.append(f"{i_url}{filename}")
 
+                elif all(ban not in filename for ban in banned):
+                    image_list.append(f"{i_url}{filename}")
+                    thumb_list.append(f"{i_url}{filename}?width=100")
         snake_info["image_list"] = image_list
         snake_info["map_list"] = map_list
         snake_info["thumb_list"] = thumb_list
@@ -494,7 +491,7 @@ class Snakes(Cog):
         antidote_answer.pop()
 
         # Begin initial board building
-        for i in range(0, 10):
+        for i in range(10):
             page_guess_list.append(f"{HOLE_EMOJI} {HOLE_EMOJI} {HOLE_EMOJI} {HOLE_EMOJI}")
             page_result_list.append(f"{CROSS_EMOJI} {CROSS_EMOJI} {CROSS_EMOJI} {CROSS_EMOJI}")
             board.append(
@@ -519,55 +516,54 @@ class Snakes(Cog):
                 log.debug("Antidote timed out waiting for a reaction")
                 break  # We're done, no reactions for the last 5 minutes
 
-            if antidote_tries < 10:
-                if antidote_guess_count < 4:
-                    if reaction.emoji in ANTIDOTE_EMOJI:
-                        antidote_guess_list.append(reaction.emoji)
-                        antidote_guess_count += 1
+            if antidote_tries < 10 and antidote_guess_count < 4:
+                if reaction.emoji in ANTIDOTE_EMOJI:
+                    antidote_guess_list.append(reaction.emoji)
+                    antidote_guess_count += 1
 
-                    if antidote_guess_count == 4:  # Guesses complete
-                        antidote_guess_count = 0
-                        page_guess_list[antidote_tries] = " ".join(antidote_guess_list)
+                if antidote_guess_count == 4:  # Guesses complete
+                    antidote_guess_count = 0
+                    page_guess_list[antidote_tries] = " ".join(antidote_guess_list)
 
                         # Now check guess
-                        for i in range(0, len(antidote_answer)):
-                            if antidote_guess_list[i] == antidote_answer[i]:
-                                guess_result.append(TICK_EMOJI)
-                            elif antidote_guess_list[i] in antidote_answer:
-                                guess_result.append(BLANK_EMOJI)
-                            else:
-                                guess_result.append(CROSS_EMOJI)
-                        guess_result.sort()
-                        page_result_list[antidote_tries] = " ".join(guess_result)
+                    for i in range(len(antidote_answer)):
+                        if antidote_guess_list[i] == antidote_answer[i]:
+                            guess_result.append(TICK_EMOJI)
+                        elif antidote_guess_list[i] in antidote_answer:
+                            guess_result.append(BLANK_EMOJI)
+                        else:
+                            guess_result.append(CROSS_EMOJI)
+                    guess_result.sort()
+                    page_result_list[antidote_tries] = " ".join(guess_result)
 
-                        # Rebuild the board
-                        board = []
-                        for i in range(0, 10):
-                            board.append(f"`{i+1:02d}` "
-                                         f"{page_guess_list[i]} - "
-                                         f"{page_result_list[i]}")
-                            board.append(EMPTY_UNICODE)
+                    # Rebuild the board
+                    board = []
+                    for i in range(10):
+                        board.append(f"`{i+1:02d}` "
+                                     f"{page_guess_list[i]} - "
+                                     f"{page_result_list[i]}")
+                        board.append(EMPTY_UNICODE)
 
-                        # Remove Reactions
-                        for emoji in antidote_guess_list:
-                            await board_id.remove_reaction(emoji, user)
+                    # Remove Reactions
+                    for emoji in antidote_guess_list:
+                        await board_id.remove_reaction(emoji, user)
 
-                        if antidote_guess_list == antidote_answer:
-                            win = True
+                    if antidote_guess_list == antidote_answer:
+                        win = True
 
-                        antidote_tries += 1
-                        guess_result = []
-                        antidote_guess_list = []
+                    antidote_tries += 1
+                    guess_result = []
+                    antidote_guess_list = []
 
-                        antidote_embed.clear_fields()
-                        antidote_embed.add_field(name=f"{10 - antidote_tries} "
-                                                      f"guesses remaining",
-                                                 value="\n".join(board))
-                        # Redisplay the board
-                        await board_id.edit(embed=antidote_embed)
+                    antidote_embed.clear_fields()
+                    antidote_embed.add_field(name=f"{10 - antidote_tries} "
+                                                  f"guesses remaining",
+                                             value="\n".join(board))
+                    # Redisplay the board
+                    await board_id.edit(embed=antidote_embed)
 
         # Winning / Ending Screen
-        if win is True:
+        if win:
             antidote_embed = Embed(color=SNAKE_COLOR, title="Antidote")
             antidote_embed.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar.url)
             antidote_embed.set_image(url="https://i.makeagif.com/media/7-12-2015/Cj1pts.gif")
@@ -642,11 +638,7 @@ class Snakes(Cog):
             if name is None:
                 name = await Snake.random()
 
-            if isinstance(name, dict):
-                data = name
-            else:
-                data = await self._get_snek(name)
-
+            data = name if isinstance(name, dict) else await self._get_snek(name)
             if data.get("error"):
                 await ctx.send("Could not fetch data from Wikipedia.")
                 return
@@ -880,11 +872,7 @@ class Snakes(Cog):
             snake_name = snake_name.split()[-1]
 
         # If no name is provided, use whoever called the command.
-        if name:
-            user_name = name
-        else:
-            user_name = ctx.author.display_name
-
+        user_name = name or ctx.author.display_name
         # Get the index of the vowel to slice the username at
         user_slice_index = len(user_name)
         for index, char in enumerate(reversed(user_name)):
@@ -1083,7 +1071,7 @@ class Snakes(Cog):
         """
         # Are we searching for anything specific?
         if search:
-            query = search + " snake"
+            query = f"{search} snake"
         else:
             snake = await self._get_snake_name()
             query = snake["name"]

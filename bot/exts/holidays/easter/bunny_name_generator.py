@@ -21,9 +21,7 @@ class BunnyNameGenerator(commands.Cog):
     def find_separators(displayname: str) -> Optional[list[str]]:
         """Check if Discord name contains spaces so we can bunnify an individual word in the name."""
         new_name = re.split(r"[_.\s]", displayname)
-        if displayname not in new_name:
-            return new_name
-        return None
+        return new_name if displayname not in new_name else None
 
     @staticmethod
     def find_vowels(displayname: str) -> Optional[str]:
@@ -52,9 +50,7 @@ class BunnyNameGenerator(commands.Cog):
         """Adds a suffix to the end of the Discord name."""
         extensions = ["foot", "ear", "nose", "tail"]
         suffix = random.choice(extensions)
-        appended_name = displayname + suffix
-
-        return appended_name
+        return displayname + suffix
 
     @commands.command()
     async def bunnyname(self, ctx: commands.Context) -> None:

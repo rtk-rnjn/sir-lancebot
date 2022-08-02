@@ -88,8 +88,7 @@ class AI:
                 if check_win(board_copy):
                     return False, move
 
-        open_corners = [i for i in possible_moves if i in (1, 3, 7, 9)]
-        if len(open_corners) > 0:
+        if open_corners := [i for i in possible_moves if i in (1, 3, 7, 9)]:
             return False, random.choice(open_corners)
 
         if 5 in possible_moves:
@@ -171,10 +170,9 @@ class Game:
         await confirm_message.delete()
         if reaction.emoji == Emojis.confirmation:
             return True, None
-        else:
-            self.over = True
-            self.canceled = True
-            return False, "User declined"
+        self.over = True
+        self.canceled = True
+        return False, "User declined"
 
     @staticmethod
     async def add_reactions(msg: discord.Message) -> None:
@@ -261,8 +259,10 @@ class TicTacToe(Cog):
         if opponent == ctx.author:
             await ctx.send("You can't play against yourself.")
             return
-        if opponent is not None and not all(
-            opponent not in (player.user for player in g.players) for g in ctx.cog.games if not g.over
+        if opponent is not None and any(
+            opponent in (player.user for player in g.players)
+            for g in ctx.cog.games
+            if not g.over
         ):
             await ctx.send("Opponent is already in game.")
             return

@@ -48,7 +48,7 @@ async def disambiguate(
     This will raise a BadArgument if entries is empty, if the disambiguation event times out,
     or if the user makes an invalid choice.
     """
-    if len(entries) == 0:
+    if not entries:
         raise BadArgument("No matches found.")
 
     if len(entries) == 1:
@@ -130,9 +130,11 @@ def replace_many(
         assert var == "That WAS a sentence"
     """
     if ignore_case:
-        replacements = dict(
-            (word.lower(), replacement) for word, replacement in replacements.items()
-        )
+        replacements = {
+            word.lower(): replacement
+            for word, replacement in replacements.items()
+        }
+
 
     words_to_replace = sorted(replacements, key=lambda s: (-len(s), s))
 
@@ -142,7 +144,7 @@ def replace_many(
 
     def _repl(match: re.Match) -> str:
         """Returns replacement depending on `ignore_case` and `match_case`."""
-        word = match.group(0)
+        word = match[0]
         replacement = replacements[word.lower() if ignore_case else word]
 
         if not match_case:

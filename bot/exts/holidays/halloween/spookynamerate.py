@@ -371,9 +371,11 @@ class SpookyNameRate(Cog):
         if SpookyNameRate.debug:
             return True
 
-        if not Client.month_override:
-            return datetime.utcnow().month == Month.OCTOBER
-        return Client.month_override == Month.OCTOBER
+        return (
+            Client.month_override == Month.OCTOBER
+            if Client.month_override
+            else datetime.utcnow().month == Month.OCTOBER
+        )
 
     def cog_check(self, ctx: Context) -> bool:
         """A command to check whether the command is being called in October."""

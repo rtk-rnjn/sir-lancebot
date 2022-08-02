@@ -22,12 +22,12 @@ class MyValenstate(commands.Cog):
         """Calculates the Levenshtein Distance between source and goal."""
         if len(source) < len(goal):
             return self.levenshtein(goal, source)
-        if len(source) == 0:
+        if not source:
             return len(goal)
-        if len(goal) == 0:
+        if not goal:
             return len(source)
 
-        pre_row = list(range(0, len(source) + 1))
+        pre_row = list(range(len(source) + 1))
         for i, source_c in enumerate(source):
             cur_row = [i + 1]
             for j, goal_c in enumerate(goal):
@@ -65,7 +65,7 @@ class MyValenstate(commands.Cog):
         else:
             embed_title = "You have a true match!"
             embed_text = "This state is your true Valenstate! There are no states that would suit" \
-                         " you better"
+                             " you better"
 
         embed = discord.Embed(
             title=f"Your Valenstate is {valenstate} \u2764",
